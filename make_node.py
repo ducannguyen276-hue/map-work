@@ -1,29 +1,29 @@
 import folium
+from folium.plugins import Draw
+from streamlit_folium import st_folium
+import streamlit as st
 
-# Example study locations: name and [latitude, longitude]
-study_locations = {
-    "Library": [43.4720, -80.5440],
-    "Campus": [43.4750, -80.5400],
-    "Cafe": [43.4700, -80.5250],
-}
+m = folium.Map(location=[43.4720, -80.5400], zoom_start=12)
 
-# Create a map centred around Waterloo
-m = folium.Map(location=[43.4720, -80.5400], zoom_start=14)
-
-# Add a marker for each location
-for name, coordinates in study_locations.items():
-    folium.Marker(
-        location=coordinates,
-        popup=name,
-        tooltip=name
-    ).add_to(m)
-
-# Add lines between the locations in dictionary order
-folium.PolyLine(
-    locations=list(study_locations.values()),
-    color="blue",
-    weight=4,
-    tooltip="Study locations"
+# Add Draw plugin configured ONLY for markers
+Draw(
+    export=False,
+    draw_options={
+        "polyline": False,
+        "polygon": False,
+        "circle": False,
+        "rectangle": False,
+        "circlemarker": False,
+        "marker": True,
+    },
 ).add_to(m)
 
-m.save("study_map.html")
+map_data = st_folium(m, height=500, width=700)
+
+# Print all placed markers
+if map_data and map_data.get("all_drawings"):
+    for i, drawing in enumerate(map_data["all_drawings"]):
+        # Note: GeoJSON stores coordinates as [longitude, latitude]
+        lng, lat = drawing["geometry"]["coordinates"]
+        print(f"Marker {i+1}: Lat={lat}, Lng={lng}")
+        st.write(f"Marker {i+1}: Lat={lat}, Lng={lng}")
